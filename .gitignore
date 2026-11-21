@@ -1,17 +1,18 @@
 # Build artifacts
 *.o
+!startup.o
 *.out
 *.dSYM/
 loader
+task0
+task1a
+task1b
 
-# Course materials stay local
-*.pdf
-*.png
-*.jpg
-*.jpeg
-*.zip
+# Local only
 .DS_Store
 .cursor/
-
-# Local notes / dumps
 readable/
+workingLoader
+
+# Local copy of the files to hand in
+/מעבדה 5 - הגשה/

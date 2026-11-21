@@ -67,18 +67,23 @@ Header printing also names common GNU types (`GNU_EH_FRAME`, `GNU_STACK`, `GNU_R
 
 ```
 .
-├── loader.c           # Final loader (tasks 2b–2d)
-├── TASK 0.c           # Snapshot of task 0
-├── TASK 1a.c          # Snapshot of task 1a
-├── TASK 1b.c          # Snapshot of task 1b
-├── start.s            # _start + system_call glue
-├── startup.s          # startup() — builds argv stack for the loaded program
-├── linking_script     # Custom linker script (low load address)
+├── loader.c                    # Final loader (tasks 2b–2d)
+├── TASK 0.c                    # Snapshot of task 0
+├── TASK 1a.c                   # Snapshot of task 1a
+├── TASK 1b.c                   # Snapshot of task 1b
+├── start.s                     # _start + system_call glue
+├── startup.s                   # startup() — builds argv stack for the loaded program
+├── startup.o                   # Provided object of startup.s
+├── linking_script              # Custom linker script (low load address)
 ├── makefile
-├── loadme             # Provided static test ELF
-├── mission            # Provided static test ELF
-├── encoder            # Provided static test ELF (needs argv via startup)
-└── workingLoader      # Provided reference loader binary
+├── loadme                      # Provided static test ELF
+├── mission                     # Provided static test ELF
+├── encoder                     # Provided static test ELF (needs argv via startup)
+├── Lab 5 tasks.pdf             # Lab tasks
+├── Lab 5 Reading material.pdf  # Reading material
+├── Chart1.png                  # Figure from the reading material
+├── object.jpg                  # Figure from the reading material
+└── loaded-object.jpg           # Figure from the reading material
 ```
 
 ## Notes
