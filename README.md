@@ -28,19 +28,28 @@ readelf -h loader
 
 | Task | Description | Source |
 |------|-------------|--------|
-| 0 | Iterator `foreach_phdr` over program headers | `loader.c` |
-| 1a | Print program headers like `readelf -l` | `loader.c` |
-| 1b | Print `mmap` protection and mapping flags per header | `loader.c` |
+| 0 | Iterator `foreach_phdr` over program headers | `TASK 0.c` |
+| 1a | Print program headers like `readelf -l` | `TASK 1a.c` |
+| 1b | Print `mmap` protection and mapping flags per header | `TASK 1b.c` |
 | 2a | Link with `linking_script`, `start.o` | `makefile`, `linking_script`, `start.s` |
 | 2b | `load_phdr` — map each `PT_LOAD` segment | `loader.c` |
 | 2c | Jump to the loaded entry point | `loader.c` |
 | 2d | Pass argv through `startup(argc-1, argv+1, entry)` | `loader.c`, `startup.s` |
 
+`loader.c` is the final loader (task 2d). Earlier stages that `main` later overwrote are kept as snapshots:
+
+- `TASK 0.c` — `main` calls `print_phdr_info` (one ELF argument)
+- `TASK 1a.c` — `main` prints all program headers like `readelf -l`
+- `TASK 1b.c` — same, plus `mmap` prot/flags for every `PT_LOAD`
+
 ## Project layout
 
 ```
 .
-├── loader.c           # Loader implementation
+├── loader.c           # Final loader (tasks 2b–2d)
+├── TASK 0.c           # Snapshot of task 0
+├── TASK 1a.c          # Snapshot of task 1a
+├── TASK 1b.c          # Snapshot of task 1b
 ├── start.s            # _start + system_call glue
 ├── startup.s          # startup() — builds argv stack for the loaded program
 ├── linking_script     # Custom linker script (low load address)
