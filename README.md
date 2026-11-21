@@ -4,7 +4,7 @@ Extended System Programming Laboratory.
 
 32-bit static ELF loader: walk program headers, map `PT_LOAD` segments with `mmap`, then transfer control to the loaded entry point (via `startup` for argv).
 
-## Build
+## Build (final loader)
 
 Needs a 32-bit toolchain (`gcc -m32`, `nasm`, `ld`).
 
@@ -24,6 +24,31 @@ Verify with:
 readelf -h loader
 ```
 
+## Earlier tasks (snapshots)
+
+`loader.c` is the final program (task 2d). In that file, `main` only prints headers through `load_phdr`, so only `PT_LOAD` lines appear, then the file is mapped and control is transferred.
+
+Earlier stages, where `main` still printed every program header (or only the task-0 message), are kept as separate snapshots so they stay visible after later tasks overwrote `main`:
+
+| File | Stage | What `main` does |
+|------|-------|------------------|
+| `TASK 0.c` | Task 0 | Calls `print_phdr_info` for each header; one ELF argument |
+| `TASK 1a.c` | Task 1a | Prints all program headers like `readelf -l` |
+| `TASK 1b.c` | Task 1b | Same as 1a, plus `mmap` prot/flags for every `PT_LOAD` |
+
+Build and run a snapshot with plain `gcc` (no custom linker script needed yet):
+
+```bash
+gcc -m32 -Wall -o task0 "TASK 0.c"
+./task0 loadme
+
+gcc -m32 -Wall -o task1a "TASK 1a.c"
+./task1a loadme
+
+gcc -m32 -Wall -o task1b "TASK 1b.c"
+./task1b loadme
+```
+
 ## Tasks
 
 | Task | Description | Source |
@@ -36,11 +61,7 @@ readelf -h loader
 | 2c | Jump to the loaded entry point | `loader.c` |
 | 2d | Pass argv through `startup(argc-1, argv+1, entry)` | `loader.c`, `startup.s` |
 
-`loader.c` is the final loader (task 2d). Earlier stages that `main` later overwrote are kept as snapshots:
-
-- `TASK 0.c` — `main` calls `print_phdr_info` (one ELF argument)
-- `TASK 1a.c` — `main` prints all program headers like `readelf -l`
-- `TASK 1b.c` — same, plus `mmap` prot/flags for every `PT_LOAD`
+Header printing also names common GNU types (`GNU_EH_FRAME`, `GNU_STACK`, `GNU_RELRO`) when present.
 
 ## Project layout
 
