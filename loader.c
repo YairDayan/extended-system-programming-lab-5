@@ -9,6 +9,8 @@
 /* Forward declarations so functions can be used before their definitions. */
 const char *phdr_type_name(Elf32_Word type);
 void flags_to_string(Elf32_Word flags, char *out);
+int phdr_to_prot(Elf32_Word flags);
+int phdr_to_mmap_flags(void);
 void print_phdr(Elf32_Phdr *phdr, int arg);
 void print_phdr_info(Elf32_Phdr *phdr, int arg);
 
@@ -63,6 +65,28 @@ void flags_to_string(Elf32_Word flags, char *out)
   out[3] = '\0';
 }
 
+/*
+ * Task 1b: convert ELF p_flags to mmap protection flags.
+ * Bit positions differ, so PF_* cannot be passed to mmap directly.
+ */
+int phdr_to_prot(Elf32_Word flags)
+{
+  int prot = 0;
+  if (flags & PF_R)
+    prot |= PROT_READ;
+  if (flags & PF_W)
+    prot |= PROT_WRITE;
+  if (flags & PF_X)
+    prot |= PROT_EXEC;
+  return prot;
+}
+
+/* Mapping flags used when loading PT_LOAD segments in this lab. */
+int phdr_to_mmap_flags(void)
+{
+  return MAP_PRIVATE | MAP_FIXED;
+}
+
 /* Task 0 verification: print index and address of each program header. */
 void print_phdr_info(Elf32_Phdr *phdr, int arg)
 {
@@ -72,7 +96,7 @@ void print_phdr_info(Elf32_Phdr *phdr, int arg)
   i++;
 }
 
-/* Task 1a: print all fields of one program header, similar to readelf -l. */
+/* Task 1a + 1b: print program header fields; for PT_LOAD also print mmap flags. */
 void print_phdr(Elf32_Phdr *phdr, int arg)
 {
   char flags[4];
@@ -89,6 +113,28 @@ void print_phdr(Elf32_Phdr *phdr, int arg)
          phdr->p_memsz,
          flags,
          phdr->p_align);
+
+  /* Only PT_LOAD segments are mapped into memory. */
+  if (phdr->p_type == PT_LOAD) {
+    int prot = phdr_to_prot(phdr->p_flags);
+    int map_flags = phdr_to_mmap_flags();
+
+    printf("  mmap prot: ");
+    if (prot & PROT_READ)
+      printf("PROT_READ ");
+    if (prot & PROT_WRITE)
+      printf("PROT_WRITE ");
+    if (prot & PROT_EXEC)
+      printf("PROT_EXEC ");
+    printf("\n");
+
+    printf("  mmap flags: ");
+    if (map_flags & MAP_PRIVATE)
+      printf("MAP_PRIVATE ");
+    if (map_flags & MAP_FIXED)
+      printf("MAP_FIXED ");
+    printf("\n");
+  }
 }
 
 int main(int argc, char **argv)
@@ -133,7 +179,7 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  /* Task 1a: print program headers like readelf -l. */
+  /* Task 1a/1b: print program headers; PT_LOAD lines include mmap flags. */
   printf("Type     Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align\n");
   foreach_phdr(map_start, print_phdr, 0);
 
