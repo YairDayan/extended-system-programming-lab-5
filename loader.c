@@ -55,6 +55,12 @@ const char *phdr_type_name(Elf32_Word type)
     return "SHLIB";
   case PT_PHDR:
     return "PHDR";
+  case PT_GNU_EH_FRAME:
+    return "GNU_EH_FRAME";
+  case PT_GNU_STACK:
+    return "GNU_STACK";
+  case PT_GNU_RELRO:
+    return "GNU_RELRO";
   default:
     return "UNKNOWN";
   }
@@ -108,7 +114,7 @@ void print_phdr(Elf32_Phdr *phdr, int arg)
 
   flags_to_string(phdr->p_flags, flags);
 
-  printf("%-8s 0x%06x 0x%08x 0x%08x 0x%05x 0x%05x %s 0x%x\n", phdr_type_name(phdr->p_type),
+  printf("%-14s 0x%06x 0x%08x 0x%08x 0x%05x 0x%05x %s 0x%x\n", phdr_type_name(phdr->p_type),
          phdr->p_offset, phdr->p_vaddr, phdr->p_paddr, phdr->p_filesz, phdr->p_memsz, flags,
          phdr->p_align);
 
@@ -215,7 +221,7 @@ int main(int argc, char **argv)
    * Task 2b: map every PT_LOAD segment. fd stays open and the file
    * mapping stays in place until the loaded program has run.
    */
-  printf("Type     Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align\n");
+  printf("Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align\n");
   foreach_phdr(map_start, load_phdr, fd);
 
   /* Task 2d: pass the loaded program's argv, then jump to its entry point. */
