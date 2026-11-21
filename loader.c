@@ -15,6 +15,9 @@ void print_phdr(Elf32_Phdr *phdr, int arg);
 void print_phdr_info(Elf32_Phdr *phdr, int arg);
 void load_phdr(Elf32_Phdr *phdr, int fd);
 
+/* Defined in startup.o. Builds argc/argv on the stack, then jumps to start. */
+int startup(int argc, char **argv, void (*start)());
+
 /*
  * Iterate over every program header in the mapped ELF file.
  * map_start - address where the file is mapped in virtual memory
@@ -173,8 +176,8 @@ int main(int argc, char **argv)
   void *map_start;
   Elf32_Ehdr *ehdr;
 
-  if (argc != 2) {
-    fprintf(stderr, "Usage: %s <ELF file>\n", argv[0]);
+  if (argc < 2) {
+    fprintf(stderr, "Usage: %s <ELF file> [args...]\n", argv[0]);
     return 1;
   }
 
@@ -214,6 +217,9 @@ int main(int argc, char **argv)
    */
   printf("Type     Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align\n");
   foreach_phdr(map_start, load_phdr, fd);
+
+  /* Task 2d: pass the loaded program's argv, then jump to its entry point. */
+  startup(argc - 1, argv + 1, (void *)(ehdr->e_entry));
 
   return 0;
 }
