@@ -13,12 +13,13 @@ int phdr_to_prot(Elf32_Word flags);
 int phdr_to_mmap_flags(void);
 void print_phdr(Elf32_Phdr *phdr, int arg);
 void print_phdr_info(Elf32_Phdr *phdr, int arg);
+void load_phdr(Elf32_Phdr *phdr, int fd);
 
 /*
  * Iterate over every program header in the mapped ELF file.
  * map_start - address where the file is mapped in virtual memory
  * func      - function pointer applied to each program header
- * arg       - extra argument passed to func (unused in tasks 0/1)
+ * arg       - extra argument passed to func (file descriptor in task 2)
  */
 int foreach_phdr(void *map_start, void (*func)(Elf32_Phdr *, int), int arg)
 {
@@ -104,14 +105,8 @@ void print_phdr(Elf32_Phdr *phdr, int arg)
 
   flags_to_string(phdr->p_flags, flags);
 
-  printf("%-8s 0x%06x 0x%08x 0x%08x 0x%05x 0x%05x %s 0x%x\n",
-         phdr_type_name(phdr->p_type),
-         phdr->p_offset,
-         phdr->p_vaddr,
-         phdr->p_paddr,
-         phdr->p_filesz,
-         phdr->p_memsz,
-         flags,
+  printf("%-8s 0x%06x 0x%08x 0x%08x 0x%05x 0x%05x %s 0x%x\n", phdr_type_name(phdr->p_type),
+         phdr->p_offset, phdr->p_vaddr, phdr->p_paddr, phdr->p_filesz, phdr->p_memsz, flags,
          phdr->p_align);
 
   /* Only PT_LOAD segments are mapped into memory. */
@@ -134,6 +129,40 @@ void print_phdr(Elf32_Phdr *phdr, int arg)
     if (map_flags & MAP_FIXED)
       printf("MAP_FIXED ");
     printf("\n");
+  }
+}
+
+/*
+ * Task 2b: map a PT_LOAD segment into virtual memory.
+ * fd is the open executable, passed through foreach_phdr as arg.
+ */
+void load_phdr(Elf32_Phdr *phdr, int fd)
+{
+  void *vaddr;
+  off_t offset;
+  size_t padding;
+  void *map;
+  int prot;
+  int map_flags;
+
+  if (phdr->p_type != PT_LOAD) {
+    return;
+  }
+
+  print_phdr(phdr, fd);
+
+  /* mmap with MAP_FIXED must start on a page boundary (0x1000). */
+  vaddr = (void *)(phdr->p_vaddr & 0xfffff000);
+  offset = phdr->p_offset & 0xfffff000;
+  padding = phdr->p_vaddr & 0xfff;
+
+  prot = phdr_to_prot(phdr->p_flags);
+  map_flags = phdr_to_mmap_flags();
+
+  map = mmap(vaddr, phdr->p_memsz + padding, prot, map_flags, fd, offset);
+  if (map == MAP_FAILED) {
+    perror("mmap");
+    exit(1);
   }
 }
 
@@ -179,11 +208,12 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  /* Task 1a/1b: print program headers; PT_LOAD lines include mmap flags. */
+  /*
+   * Task 2b: map every PT_LOAD segment. fd stays open and the file
+   * mapping stays in place until the loaded program has run.
+   */
   printf("Type     Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align\n");
-  foreach_phdr(map_start, print_phdr, 0);
+  foreach_phdr(map_start, load_phdr, fd);
 
-  munmap(map_start, st.st_size);
-  close(fd);
   return 0;
 }
