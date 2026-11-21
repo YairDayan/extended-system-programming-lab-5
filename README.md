@@ -40,7 +40,7 @@ readelf -h loader
 
 ```
 .
-├── loader.c           # Loader implementation (tasks 0–2d)
+├── loader.c           # Loader implementation
 ├── start.s            # _start + system_call glue
 ├── startup.s          # startup() — builds argv stack for the loaded program
 ├── linking_script     # Custom linker script (low load address)
