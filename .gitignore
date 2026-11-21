@@ -1,0 +1,17 @@
+# Build artifacts
+*.o
+*.out
+*.dSYM/
+loader
+
+# Course materials stay local
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.zip
+.DS_Store
+.cursor/
+
+# Local notes / dumps
+readable/
